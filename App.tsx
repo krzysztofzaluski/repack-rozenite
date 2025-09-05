@@ -1,13 +1,7 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React from 'react';
 import type {PropsWithChildren} from 'react';
 import {
+  Button,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -16,13 +10,10 @@ import {
   View,
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import {Colors, Header} from 'react-native/Libraries/NewAppScreen';
+import {Provider, useDispatch, useSelector} from 'react-redux';
+import {store, type RootState, type AppDispatch} from './src/store';
+import {increment, decrement, addBy, reset} from './src/store/counterActions';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -54,23 +45,17 @@ function Section({children, title}: SectionProps): React.JSX.Element {
   );
 }
 
-function App(): React.JSX.Element {
+function AppInner(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
-
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the recommendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
   const safePadding = '5%';
+
+  // @ts-ignore
+  const count = useSelector((state: RootState) => state.counter.value);
+  const dispatch = useDispatch<AppDispatch>();
 
   return (
     <View style={backgroundStyle}>
@@ -78,10 +63,9 @@ function App(): React.JSX.Element {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <ScrollView
-        style={backgroundStyle}>
+      <ScrollView style={backgroundStyle}>
         <View style={{paddingRight: safePadding}}>
-          <Header/>
+          <Header />
         </View>
         <View
           style={{
@@ -89,23 +73,28 @@ function App(): React.JSX.Element {
             paddingHorizontal: safePadding,
             paddingBottom: safePadding,
           }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
+          <Section title="Counter">
+            <Text style={styles.counterValue}>Count: {count}</Text>
+            <View style={styles.row}>
+              <Button title="+1" onPress={() => dispatch(increment())} />
+              <Button title="-1" onPress={() => dispatch(decrement())} />
+            </View>
+            <View style={styles.row}>
+              <Button title="+5" onPress={() => dispatch(addBy(5))} />
+              <Button title="Reset" onPress={() => dispatch(reset())} />
+            </View>
           </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
         </View>
       </ScrollView>
     </View>
+  );
+}
+
+export default function App(): React.JSX.Element {
+  return (
+    <Provider store={store}>
+      <AppInner />
+    </Provider>
   );
 }
 
@@ -126,6 +115,15 @@ const styles = StyleSheet.create({
   highlight: {
     fontWeight: '700',
   },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 10,
+  },
+  counterValue: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
 });
-
-export default App;
